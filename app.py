@@ -15,6 +15,7 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
 
+    # Import and register blueprints INSIDE create_app to avoid circular imports
     from routes.auth_routes import auth_bp
     app.register_blueprint(auth_bp)
 
