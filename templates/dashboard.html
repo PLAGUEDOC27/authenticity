@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Authenticity Validator Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:hover { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Uploaded Documents Dashboard</h1>
+    <table>
+        <tr>
+            <th>Document ID</th>
+            <th>Filename</th>
+            <th>Uploaded By (User ID)</th>
+            <th>Text Length</th>
+            <th>Plagiarism Score</th>
+            <th>AI Text Probability</th>
+        </tr>
+        {% for doc in documents %}
+        <tr>
+            <td>{{ doc.id }}</td>
+            <td>{{ doc.filename }}</td>
+            <td>{{ doc.user_id }}</td>
+            <td>{{ doc.text_length }}</td>
+            <td>{{ "{:.2f}".format(doc.max_similarity) }}</td>
+            <td>{{ "{:.2f}".format(doc.ai_generated_prob) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

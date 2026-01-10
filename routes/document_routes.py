@@ -2,6 +2,7 @@ import os
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
+from flask import render_template
 
 from extensions import db
 from models.document import Document
@@ -87,3 +88,21 @@ def upload_document():
         "max_similarity": max_similarity,
         "ai_generated_prob": ai_generated_prob
     }), 201
+    
+@document_bp.route("/dashboard", methods=["GET"])
+def dashboard():
+    documents = Document.query.all()
+
+    # Prepare documents for display
+    docs_for_display = []
+    for d in documents:
+        docs_for_display.append({
+            "id": d.id,
+            "filename": d.filename,
+            "user_id": d.user_id,
+            "text_length": len(d.original_text) if d.original_text else 0,
+            "max_similarity": getattr(d, "max_similarity", 0.0),  # placeholder
+            "ai_generated_prob": getattr(d, "ai_generated_prob", 0.0)  # placeholder
+        })
+
+    return render_template("dashboard.html", documents=docs_for_display)
