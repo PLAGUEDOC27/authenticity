@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -7,6 +7,12 @@ import os
 from extensions import db, jwt
 from models.user import User
 from models.document import Document
+
+from utlis.text_extractor import extract_text_from_file
+from utlis.plagiarism import calculate_plagiarism,clean_text
+from utlis.ai_detector import ai_probability_score
+
+
 
 
 def create_app():
@@ -111,20 +117,57 @@ def create_app():
             path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(path)
 
+            # 1️⃣ Extract text
+            text = extract_text_from_file(path)
+
+            if not text or not text.strip():
+                return "No readable text found", 400
+
+            # 2️⃣ Clean text
+            processed_text = clean_text(text)
+
+            # 3️⃣ Get existing documents
+            existing_texts = [
+                d.original_text
+                for d in Document.query.all()
+                if d.original_text
+            ]
+
+            # 4️⃣ Calculate plagiarism
+            plagiarism_score, similarity_report = calculate_plagiarism(
+                processed_text,
+                existing_texts
+            )
+
+            # 5️⃣ Calculate AI probability
+            ai_prob = ai_probability_score(text)
+
+            # 6️⃣ Save to DB
             doc = Document(
                 user_id=session["user_id"],
                 filename=filename,
                 file_type=filename.rsplit(".", 1)[-1],
-                original_text=None,
-                plagiarism_score=0.0,
-                ai_generated_prob=0.0
+                original_text=processed_text,
+                plagiarism_score=plagiarism_score,
+                ai_generated_prob=ai_prob
             )
 
             db.session.add(doc)
             db.session.commit()
-            return redirect(url_for("dashboard"))
+
+            return jsonify({
+                "msg": "File uploaded and analyzed",
+                "document_id": doc.id,
+                "plagiarism_score": plagiarism_score,
+                "similarity_report": similarity_report,
+                "ai_probability": ai_prob
+            }), 201
+            return render_template("dashboard.html")
+    
 
         return render_template("upload.html")
+
+
 
     return app
 

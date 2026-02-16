@@ -1,30 +1,39 @@
-from pdfminer.high_level import extract_text as pdf_extract
-from docx import Document as DocxDocument
-from pdf2image import convert_from_path
-import pytesseract
 import os
+import PyPDF2
+import docx
 
-def extract_text(file_path, file_type):
-    if file_type == "pdf":
-        text = pdf_extract(file_path)
+def extract_text_from_file(filepath):
+    ext = os.path.splitext(filepath)[1].lower()
 
-        # fallback to OCR if text is empty
-        if text.strip():
-            return text
+    if ext == ".txt":
+        return extract_txt(filepath)
 
-        images = convert_from_path(file_path)
-        ocr_text = ""
-        for img in images:
-            ocr_text += pytesseract.image_to_string(img)
+    elif ext == ".pdf":
+        return extract_pdf(filepath)
 
-        return ocr_text
+    elif ext == ".docx":
+        return extract_docx(filepath)
 
-    elif file_type == "docx":
-        doc = DocxDocument(file_path)
-        return "\n".join(p.text for p in doc.paragraphs)
+    else:
+        return ""
 
-    elif file_type == "txt":
-        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-            return f.read()
 
-    return ""
+def extract_txt(filepath):
+    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+        return f.read()
+
+
+def extract_pdf(filepath):
+    text = ""
+    with open(filepath, "rb") as f:
+        reader = PyPDF2.PdfReader(f)
+        for page in reader.pages:
+            extracted = page.extract_text()
+            if extracted:
+                text += extracted + " "
+    return text
+
+
+def extract_docx(filepath):
+    doc = docx.Document(filepath)
+    return " ".join([para.text for para in doc.paragraphs])
