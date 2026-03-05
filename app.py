@@ -226,7 +226,7 @@ def create_app():
             ]
 
             # 4️⃣ Calculate plagiarism
-            plagiarism_score, similarity_report = check_plagiarism(text, existing_docs)
+            plagiarism_score, similarity_report = check_plagiarism(text, existing_texts)
 
             # 5️⃣ Calculate AI probability
             ai_prob = ai_probability_score(text)
