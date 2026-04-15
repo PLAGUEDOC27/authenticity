@@ -136,6 +136,9 @@ def create_app():
             (d.plagiarism_score for d in docs),
             default=0
         )
+        print("DOCS:", docs)
+        print("AVG AI:", avg_ai)
+        print("AVG PLAG:", avg_plagiarism )
 
 
         return render_template(
@@ -181,39 +184,6 @@ def create_app():
             "similarity_graph.html",
             image=image_base64
         )
-
-
-    @app.route("/document/<int:doc_id>")
-    def document_detail(doc_id):
-
-        # 🔐 Session check
-        if "user_id" not in session:
-            return redirect(url_for("login"))
-
-        # 📄 Get document
-        doc = Document.query.get_or_404(doc_id)
-
-        # 📊 Load similarity report
-        report = []
-        if doc.similarity_report:
-            try:
-                report = json.loads(doc.similarity_report)
-            except:
-                report = []
-
-        # 🤖 AI Score (convert to %)
-        ai_score = round(doc.ai_generated_prob or 0, 2)
-
-        print("AI SCORE:", ai_score)
-        print("RESULTS SAMPLE:", results[:2])
-
-        return render_template(
-            "document_detail.html",
-            document=doc,
-            results=report,     # ✅ matches template
-            ai_score=ai_score
-        )
-
 
     return app
 

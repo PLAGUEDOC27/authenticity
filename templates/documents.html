@@ -19,10 +19,10 @@
             <td>{{ doc.plagiarism_score }}%</td>
             <td>{{ doc.ai_generated_prob }}%</td>
             <td>
-                <a href="{{ url_for('document_detail', doc_id=doc.id) }}" class="btn btn-sm btn-primary">
-                    View
+                <a href="{{ url_for('documents.document_detail', doc_id=doc.id) }}"
+                    class="btn btn-sm btn-outline-primary">
+                    View Details
                 </a>
-            </td>
         </tr>
         {% endfor %}
     </tbody>

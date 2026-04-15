@@ -1,5 +1,8 @@
 import os
-from flask import Blueprint, request, current_app, render_template, flash, redirect, url_for, session
+import json
+from collections import defaultdict
+
+from flask import Blueprint, request, current_app, render_template, flash, redirect, url_for, session, send_file
 from werkzeug.utils import secure_filename
 
 from extensions import db
@@ -9,7 +12,7 @@ from utils.text_extractor import extract_text_from_file
 from utils.text_preprocessing import preprocess_text
 from utils.plagiarism_engine import check_plagiarism
 from utils.ai_detector import ai_probability_score
-import json
+from utils.pdf_export import generate_pdf
 
 document_bp = Blueprint("documents", __name__)
 
@@ -26,66 +29,51 @@ def allowed_file(filename):
 @document_bp.route("/documents/upload", methods=["GET", "POST"])
 def upload_document():
 
-    # 🔐 SESSION CHECK (REPLACES JWT)
     if "user_id" not in session:
         return redirect(url_for("login"))
 
     if request.method == "GET":
         return render_template("upload.html")
 
-    # -------- FILE VALIDATION --------
     if "file" not in request.files:
-        flash("No file detected. Please select a file to upload.", "danger")
+        flash("No file detected.", "danger")
         return redirect(url_for("documents.upload_document"))
 
     file = request.files["file"]
 
     if file.filename == "":
-        flash("No file selected. Please choose a file.", "warning")
+        flash("No file selected.", "warning")
         return redirect(url_for("documents.upload_document"))
 
     if not allowed_file(file.filename):
-        flash("Unsupported file type. Allowed formats: PDF, DOCX, TXT.", "danger")
+        flash("Unsupported file type.", "danger")
         return redirect(url_for("documents.upload_document"))
 
-    # -------- SAVE FILE --------
     filename = secure_filename(file.filename)
+
     upload_folder = os.path.join(current_app.root_path, "uploads")
     os.makedirs(upload_folder, exist_ok=True)
 
     path = os.path.join(upload_folder, filename)
     file.save(path)
 
-    ext = filename.rsplit(".", 1)[1].lower()
-
-    # 🔐 GET USER FROM SESSION
     user_id = session.get("user_id")
 
-    # -------- CREATE DB ENTRY --------
-    doc = Document(
-        user_id=user_id,
-        filename=filename,
-        file_type=ext
-    )
+    doc = Document(user_id=user_id, filename=filename, file_type=filename.rsplit(".", 1)[1].lower())
     db.session.add(doc)
     db.session.commit()
 
-    # -------- TEXT EXTRACTION --------
     try:
         raw_text = extract_text_from_file(path)
-
         if not raw_text or not raw_text.strip():
-            flash("We couldn't extract readable content from your file.", "warning")
+            flash("No readable content found.", "warning")
             return redirect(url_for("documents.upload_document"))
-
     except Exception:
-        flash("Error processing file. The file may be corrupted.", "danger")
+        flash("File processing error.", "danger")
         return redirect(url_for("documents.upload_document"))
 
-    # -------- PREPROCESS --------
     clean_text = preprocess_text(raw_text)
 
-    # -------- PLAGIARISM --------
     existing_docs = Document.query.filter(
         Document.original_text.isnot(None),
         Document.id != doc.id
@@ -93,11 +81,8 @@ def upload_document():
 
     plagiarism_score, similarity_report = check_plagiarism(clean_text, existing_docs)
 
-
-    # -------- AI DETECTION --------
     ai_prob = ai_probability_score(clean_text)
 
-    # -------- SAVE RESULTS --------
     doc.original_text = clean_text
     doc.plagiarism_score = plagiarism_score
     doc.similarity_report = json.dumps(similarity_report)
@@ -106,7 +91,6 @@ def upload_document():
     db.session.commit()
 
     flash("File uploaded and analyzed successfully!", "success")
-
     return redirect(url_for("documents.dashboard"))
 
 
@@ -135,14 +119,72 @@ def dashboard():
     documents = Document.query.all()
 
     docs_for_display = []
+
     for d in documents:
         docs_for_display.append({
             "id": d.id,
             "filename": d.filename,
             "user_id": d.user_id,
-            "text_length": len(d.original_text) if d.original_text else 0,
+            "text_length": len(d.original_text or ""),
             "plagiarism_score": d.plagiarism_score or 0.0,
-            "ai_generated_prob": round((d.ai_generated_prob or 0.0) * 100, 2)
+            "ai_generated_prob": round(d.ai_generated_prob or 0.0, 2)
         })
 
+    print("DOC COUNT:", len(documents))
+    print("DASHBOARD SAMPLE:", docs_for_display[:2])
+
     return render_template("dashboard.html", documents=docs_for_display)
+
+
+# =========================
+# 📄 DOCUMENT DETAIL (TURNITIN VIEW FIX)
+# =========================
+@document_bp.route("/document/<int:doc_id>")
+def document_detail(doc_id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    doc = Document.query.get_or_404(doc_id)
+
+    report = []
+    if doc.similarity_report:
+        try:
+            report = json.loads(doc.similarity_report)
+        except:
+            report = []
+
+    ai_score = round(doc.ai_generated_prob or 0.0, 2)
+
+    # Group by source (Turnitin style)
+    grouped = defaultdict(list)
+
+    for item in report:
+        grouped[item.get("source_document", "Unknown")].append(item)
+
+    return render_template(
+        "document_detail.html",
+        document=doc,
+        results=report,
+        grouped_results=dict(grouped),
+        ai_score=ai_score
+    )
+
+
+# =========================
+# 📄 PDF DOWNLOAD
+# =========================
+@document_bp.route("/document/<int:doc_id>/download")
+def download_report(doc_id):
+
+    doc = Document.query.get_or_404(doc_id)
+
+    report = []
+    if doc.similarity_report:
+        report = json.loads(doc.similarity_report)
+
+    file_path = f"report_{doc_id}.pdf"
+
+    generate_pdf(doc, report, file_path)
+
+    return send_file(file_path, as_attachment=True)

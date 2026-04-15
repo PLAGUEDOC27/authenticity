@@ -56,7 +56,8 @@ def check_plagiarism(new_text, documents):
                 percent = round(score * 100, 2)
 
                 report.append({
-                    "matched_sentence": new_sentences[i],
+                    "sentence_id": i,
+                    "sentence": new_sentences[i],
                     "source_document": sentence_source_map[j],
                     "similarity": percent
                 })

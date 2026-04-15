@@ -1,60 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-3">Analysis Result</h2>
+<h3 style="font-weight:700;">{{ document.filename }}</h3>
 
-<div class="mb-3">
-    <strong>File:</strong> {{ document.filename }} <br>
-    <strong>AI Detection Score:</strong> {{ ai_score }}%
+<div class="row mt-3">
+
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h6>AI Score</h6>
+            <h3>{{ ai_score }}%</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h6>Plagiarism Score</h6>
+            <h3>{{ document.plagiarism_score }}%</h3>
+        </div>
+    </div>
+
 </div>
 
-<input type="text" id="searchBox" class="form-control mb-3" placeholder="Search sentence...">
+<hr>
 
-<table class="table table-bordered table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th>Sentence</th>
-            <th>Similarity</th>
-            <th>Source</th>
-        </tr>
-    </thead>
-    <tbody id="resultTable">
+{% for source, items in grouped_results.items() %}
 
-        {% if results and results|length > 0 %}
-            {% for item in results %}
-            <tr class="
-                {% if item.similarity > 70 %}table-danger
-                {% elif item.similarity > 40 %}table-warning
-                {% else %}table-success{% endif %}
-            ">
-                <td>{{ item.matched_sentence }}</td>
-                <td>{{ item.similarity }}%</td>
-                <td>{{ item.source_document }}</td>
-            </tr>
-            {% endfor %}
-        {% else %}
-            <tr>
-                <td colspan="3" class="text-center text-muted">
-                    No plagiarism matches found
-                </td>
-            </tr>
-        {% endif %}
+<div class="card p-3 mt-3">
 
-    </tbody>
-</table>
+    <h6 style="color:#2563eb;">Source: {{ source }}</h6>
 
-<button class="btn btn-success">Download Report</button>
+    {% for item in items %}
 
-<script>
-document.getElementById("searchBox").addEventListener("keyup", function() {
-    let filter = this.value.toLowerCase();
-    let rows = document.querySelectorAll("#resultTable tr");
+        <div style="
+            padding:10px;
+            margin-top:10px;
+            border-left:5px solid
+            {% if item.similarity > 70 %}#ef4444
+            {% elif item.similarity > 40 %}#f59e0b
+            {% else %}#22c55e
+            {% endif %}
+        ; background:#f9fafb; border-radius:8px;">
 
-    rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
-    });
-});
-</script>
+            {{ item.sentence }}
+            <span style="float:right;font-weight:600;">
+                {{ item.similarity }}%
+            </span>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endfor %}
 
 {% endblock %}

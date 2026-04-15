@@ -58,3 +58,19 @@ body {
 .drop-zone.dragover {
     background-color: #e9ecef;
 }
+
+.card:hover {
+    transform: translateY(-2px);
+    transition: 0.2s;
+}
+
+table {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+table th {
+    background: #111827;
+    color: white;
+}

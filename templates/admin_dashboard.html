@@ -1,35 +1,61 @@
 {% extends "base.html" %}
-
 {% block content %}
 
-<h3 class="mb-4">Admin Dashboard</h3>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- KPI CARDS -->
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.kpi {
+    border-radius: 14px;
+    padding: 18px;
+    background: white;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.kpi h2 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+</style>
+
+<h3 class="mb-4 fw-bold">Admin Analytics Dashboard</h3>
+
+<!-- KPI ROW -->
 <div class="row g-4">
 
     <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
+        <div class="kpi">
             <h6>Total Users</h6>
             <h2>{{ total_users }}</h2>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
+        <div class="kpi">
             <h6>Total Documents</h6>
             <h2>{{ total_docs }}</h2>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
+        <div class="kpi">
             <h6>Avg Plagiarism</h6>
             <h2 class="text-danger">{{ avg_plagiarism }}%</h2>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card p-3 shadow-sm">
+        <div class="kpi">
             <h6>Avg AI Score</h6>
             <h2 class="text-primary">{{ avg_ai }}%</h2>
         </div>
@@ -37,24 +63,70 @@
 
 </div>
 
-<!-- HIGHLIGHT SECTION -->
-<div class="card mt-4 p-3 shadow-sm">
-    <h5>⚠ Highest Plagiarism Case</h5>
-    <h3 class="text-danger">{{ max_plagiarism }}%</h3>
+<!-- CHARTS ROW -->
+<div class="row mt-4 g-4">
+
+    <!-- BAR CHART -->
+    <div class="col-md-7">
+        <div class="card p-3">
+            <h6 class="mb-3">System Overview</h6>
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+    <!-- PIE CHART -->
+    <div class="col-md-5">
+        <div class="card p-3">
+            <h6 class="mb-3">Content Distribution</h6>
+            <canvas id="pieChart"></canvas>
+        </div>
+    </div>
+
 </div>
 
-<!-- CHART -->
-<div class="card mt-4 p-4 shadow-sm">
-    <h5 class="mb-3">System Analytics</h5>
-    <canvas id="adminChart"></canvas>
-</div>
-
-<!-- 🔥 ADD SCRIPT HERE -->
+<!-- DATA -->
 <script>
-    const total_users = {{ total_users | tojson }};
-    const total_docs = {{ total_docs | tojson }};
-    const avg_plagiarism = {{ avg_plagiarism | tojson }};
-    const avg_ai = {{ avg_ai | tojson }};
+const totalUsers = {{ total_users | tojson }};
+const totalDocs = {{ total_docs | tojson }};
+const avgPlagiarism = {{ avg_plagiarism | tojson }};
+const avgAI = {{ avg_ai | tojson }};
+</script>
+
+<!-- BAR CHART -->
+<script>
+new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+        labels: ["Users", "Documents", "Plagiarism", "AI Score"],
+        datasets: [{
+            label: "Analytics",
+            data: [totalUsers, totalDocs, avgPlagiarism, avgAI],
+            backgroundColor: ["#3b82f6", "#10b981", "#ef4444", "#8b5cf6"]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+
+<!-- PIE CHART -->
+<script>
+new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+        labels: ["Low Risk", "Medium Risk", "High Risk"],
+        datasets: [{
+            data: [
+                totalDocs * 0.4,
+                totalDocs * 0.35,
+                totalDocs * 0.25
+            ],
+            backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"]
+        }]
+    }
+});
 </script>
 
 {% endblock %}
