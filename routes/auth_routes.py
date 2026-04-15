@@ -48,7 +48,7 @@ def login():
     user = User.query.filter_by(username=username).first()
     if not user or not check_password_hash(user.password_hash, password):
         return jsonify({"msg": "Invalid username or password"}), 401
-
+        
     # IMPORTANT: identity as STRING to satisfy JWT subject requirement
     access_token = create_access_token(identity=str(user.id))
 
