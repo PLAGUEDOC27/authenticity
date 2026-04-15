@@ -4,56 +4,57 @@
 
 <h3 class="mb-4">Admin Dashboard</h3>
 
-<div class="row">
+<!-- KPI CARDS -->
+<div class="row g-4">
 
-<div class="col-md-4">
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h6>Total Users</h6>
+            <h2>{{ total_users }}</h2>
+        </div>
+    </div>
 
-<div class="card text-center">
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h6>Total Documents</h6>
+            <h2>{{ total_docs }}</h2>
+        </div>
+    </div>
 
-<div class="card-body">
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h6>Avg Plagiarism</h6>
+            <h2 class="text-danger">{{ avg_plagiarism }}%</h2>
+        </div>
+    </div>
 
-<h5>Total Users</h5>
-
-<h2>{{ total_users }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-4">
-
-<div class="card text-center">
-
-<div class="card-body">
-
-<h5>Total Documents</h5>
-
-<h2>{{ total_documents }}</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-4">
-
-<div class="card text-center">
-
-<div class="card-body">
-
-<h5>Average AI Score</h5>
-
-<h2>{{ avg_ai }}</h2>
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h6>Avg AI Score</h6>
+            <h2 class="text-primary">{{ avg_ai }}%</h2>
+        </div>
+    </div>
 
 </div>
 
+<!-- HIGHLIGHT SECTION -->
+<div class="card mt-4 p-3 shadow-sm">
+    <h5>⚠ Highest Plagiarism Case</h5>
+    <h3 class="text-danger">{{ max_plagiarism }}%</h3>
 </div>
 
+<!-- CHART -->
+<div class="card mt-4 p-4 shadow-sm">
+    <h5 class="mb-3">System Analytics</h5>
+    <canvas id="adminChart"></canvas>
 </div>
 
-</div>
+<!-- 🔥 ADD SCRIPT HERE -->
+<script>
+    const total_users = {{ total_users | tojson }};
+    const total_docs = {{ total_docs | tojson }};
+    const avg_plagiarism = {{ avg_plagiarism | tojson }};
+    const avg_ai = {{ avg_ai | tojson }};
+</script>
 
 {% endblock %}

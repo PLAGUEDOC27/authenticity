@@ -12,44 +12,58 @@ def check_plagiarism(new_text, documents):
 
     new_sentences = split_sentences(new_text)
 
+    existing_sentences = []
+    sentence_source_map = []
+
+    # Collect all sentences from DB
+    for doc in documents:
+        if not doc.original_text:
+            continue
+
+        sents = split_sentences(doc.original_text)
+
+        for s in sents:
+            existing_sentences.append(s)
+            sentence_source_map.append(doc.filename)
+
+    # 🚨 If no data
+    if not existing_sentences or not new_sentences:
+        return 0.0, []
+
+    # ✅ Combine all sentences
+    all_sentences = new_sentences + existing_sentences
+
+    # ✅ ONE TF-IDF MODEL (IMPORTANT)
+    vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+    tfidf_matrix = vectorizer.fit_transform(all_sentences)
+
+    # Split vectors
+    new_vecs = tfidf_matrix[:len(new_sentences)]
+    existing_vecs = tfidf_matrix[len(new_sentences):]
+
+    # ✅ MATRIX SIMILARITY (FAST)
+    similarity_matrix = cosine_similarity(new_vecs, existing_vecs)
+
     report = []
     total_score = 0
     match_count = 0
 
-    for doc in documents:
+    for i, row in enumerate(similarity_matrix):
+        for j, score in enumerate(row):
 
-        if not doc.original_text:
-            continue
+            if score > 0.2:  # 🔥 LOWERED threshold
 
-        existing_sentences = split_sentences(doc.original_text)
+                percent = round(score * 100, 2)
 
-        for s1 in new_sentences:
-            for s2 in existing_sentences:
+                report.append({
+                    "matched_sentence": new_sentences[i],
+                    "source_document": sentence_source_map[j],
+                    "similarity": percent
+                })
 
-                # TF-IDF Vectorization (2 sentences at a time)
-                vectorizer = TfidfVectorizer(ngram_range=(1, 2))  # unigram + bigram
+                total_score += percent
+                match_count += 1
 
-                vectors = vectorizer.fit_transform([s1, s2])
+    final_score = round(total_score / match_count, 2) if match_count else 0
 
-                similarity_matrix = cosine_similarity(vectors[0:1], vectors[1:2])
-                score = similarity_matrix[0][0]
-
-                if score > 0.3:  # threshold (IMPORTANT)
-
-                    percent = round(score * 100, 2)
-
-                    report.append({
-                        "matched_sentence": s1,
-                        "source_document": doc.filename,
-                        "similarity": percent
-                    })
-
-                    total_score += percent
-                    match_count += 1
-
-    if match_count > 0:
-        final_score = total_score / match_count
-    else:
-        final_score = 0
-
-    return round(final_score, 2), report
+    return final_score, report

@@ -1,0 +1,60 @@
+body {
+    background-color: #f5f7fb;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background: #1f2937;
+    position: fixed;
+}
+
+.sidebar .nav-link {
+    color: #cbd5e1;
+    margin: 8px 0;
+}
+
+.sidebar .nav-link:hover {
+    background: #374151;
+    border-radius: 6px;
+}
+
+.main-content {
+    margin-left: 240px;
+}
+
+.card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.kpi-card {
+    padding: 20px;
+}
+
+.highlight-high {
+    background-color: #ffcccc;
+}
+
+.highlight-medium {
+    background-color: #fff3cd;
+}
+
+.highlight-low {
+    background-color: #d4edda;
+}
+
+/* Drag Drop */
+.drop-zone {
+    border: 2px dashed #6c757d;
+    padding: 40px;
+    text-align: center;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.drop-zone.dragover {
+    background-color: #e9ecef;
+}

@@ -1,46 +1,60 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Document Details</title>
+{% extends "base.html" %}
+{% block content %}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<h2 class="mb-3">Analysis Result</h2>
 
-<body class="container mt-5">
+<div class="mb-3">
+    <strong>File:</strong> {{ document.filename }} <br>
+    <strong>AI Detection Score:</strong> {{ ai_score }}%
+</div>
 
-<h2>{{ doc.filename }}</h2>
+<input type="text" id="searchBox" class="form-control mb-3" placeholder="Search sentence...">
 
-<p><b>Plagiarism Score:</b> {{ doc.plagiarism_score }}%</p>
-<p><b>AI Probability:</b> {{ doc.ai_generated_prob }}%</p>
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Sentence</th>
+            <th>Similarity</th>
+            <th>Source</th>
+        </tr>
+    </thead>
+    <tbody id="resultTable">
 
-<hr>
+        {% if results and results|length > 0 %}
+            {% for item in results %}
+            <tr class="
+                {% if item.similarity > 70 %}table-danger
+                {% elif item.similarity > 40 %}table-warning
+                {% else %}table-success{% endif %}
+            ">
+                <td>{{ item.matched_sentence }}</td>
+                <td>{{ item.similarity }}%</td>
+                <td>{{ item.source_document }}</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="3" class="text-center text-muted">
+                    No plagiarism matches found
+                </td>
+            </tr>
+        {% endif %}
 
-<h4>Matched Sentences</h4>
-
-{% if report %}
-<table class="table table-bordered">
-
-<thead>
-    <tr>
-        <th>Sentence</th>
-        <th>Source Document</th>
-        <th>Similarity</th>
-    </tr>
-</thead>
-
-<tbody>
-
-{% for r in report %}
-<tr>
-    <td>{{ r.matched_sentence }}</td>
-    <td>{{ r.source_document }}</td>
-    <td>{{ r.similarity }}%</td>
-</tr>
-{% endfor %}
-
-</tbody>
-
+    </tbody>
 </table>
-{% else %}
-<p>No matches found</p>
-{% endif %}
+
+<button class="btn btn-success">Download Report</button>
+
+<script>
+document.getElementById("searchBox").addEventListener("keyup", function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#resultTable tr");
+
+    rows.forEach(row => {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+    });
+});
+</script>
+
+{% endblock %}

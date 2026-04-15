@@ -27,6 +27,7 @@ from utils.analytics import generate_plagiarism_chart
 
 
 
+
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -51,6 +52,9 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+    
+    from routes.document_routes import document_bp
+    app.register_blueprint(document_bp)
 
     # ---------------- ROUTES ----------------
     @app.route("/")
@@ -65,7 +69,7 @@ def create_app():
             password = request.form["password"]
 
             user = User.query.filter_by(username=username).first()
-            if not user or not check_password_hash(user.password, password):
+            if not user or not check_password_hash(user.password_hash, password):
                 return render_template("auth.html", error="Invalid credentials")
 
             session["user_id"] = user.id
@@ -75,7 +79,7 @@ def create_app():
             if user.role == "admin":
                 return redirect(url_for("admin_dashboard"))
             else:
-                return redirect(url_for("dashboard"))
+                return redirect(url_for("documents.dashboard"))
 
         return render_template("auth.html")
 
@@ -97,42 +101,28 @@ def create_app():
                 (User.username == username) | (User.email == email)
             ).first()
 
-        if existing_user:
-            return render_template("create_user.html", error="Username or Email already exists")
+            if existing_user:
+                return render_template("create_user.html", error="Username or Email already exists")
 
-        user = User(
-            username=username,
-            email=email,
-            password=generate_password_hash(password),
-            role="user"
-        )
+            user = User(
+                username=username,
+                email=email,
+                password_hash=generate_password_hash(password),
+                role="user"
+            )
 
-        db.session.add(user)
-        db.session.commit()
+            db.session.add(user)
+            db.session.commit()
 
-        return redirect(url_for("login"))
-
-
-    @app.route("/dashboard")
-    def dashboard():
-        if "user_id" not in session:
             return redirect(url_for("login"))
-
-        docs = Document.query.all()
-        return render_template("dashboard.html", documents=docs)
 
     
     @app.route("/admin")
     def admin_dashboard():
 
-        if session.get("role") != "admin":
-            return redirect(url_for("dashboard"))
-
         total_users = User.query.count()
-
+        total_docs = Document.query.count()
         docs = Document.query.all()
-
-        total_docs = len(docs)
 
         avg_plagiarism = round(
             sum(d.plagiarism_score for d in docs) / total_docs, 2
@@ -147,9 +137,6 @@ def create_app():
             default=0
         )
 
-        # ✅ ADD THIS HERE
-        scores = [d.plagiarism_score for d in docs]
-        generate_plagiarism_chart(scores)
 
         return render_template(
             "admin_dashboard.html",
@@ -195,79 +182,37 @@ def create_app():
             image=image_base64
         )
 
+
     @app.route("/document/<int:doc_id>")
     def document_detail(doc_id):
 
-        doc = Document.query.get_or_404(doc_id)
-
-        report = []
-
-        if doc.similarity_report:
-            report = json.loads(doc.similarity_report)
-
-        return render_template(
-            "document_detail.html",
-            doc=doc,
-            report=report
-    )
-
-
-    @app.route("/upload", methods=["GET", "POST"])
-    def upload():
+        # 🔐 Session check
         if "user_id" not in session:
             return redirect(url_for("login"))
 
-        if request.method == "POST":
-            file = request.files.get("file")
-            if not file or file.filename == "":
-                return "No file selected", 400
+        # 📄 Get document
+        doc = Document.query.get_or_404(doc_id)
 
-            filename = secure_filename(file.filename)
-            path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(path)
+        # 📊 Load similarity report
+        report = []
+        if doc.similarity_report:
+            try:
+                report = json.loads(doc.similarity_report)
+            except:
+                report = []
 
-            # 1️⃣ Extract text
-            text = extract_text_from_file(path)
+        # 🤖 AI Score (convert to %)
+        ai_score = round(doc.ai_generated_prob or 0, 2)
 
-            if not text or not text.strip():
-                return "No readable text found", 400
+        print("AI SCORE:", ai_score)
+        print("RESULTS SAMPLE:", results[:2])
 
-            # 2️⃣ Clean text
-            processed_text = preprocess_text(text)
-
-            # 3️⃣ Get existing documents
-            existing_docs = Document.query.all()
-
-            # 4️⃣ Calculate plagiarism
-            plagiarism_score, similarity_report = check_plagiarism(processed_text, existing_docs)
-
-            # 5️⃣ Calculate AI probability
-            ai_prob = round(ai_probability_score(processed_text), 2)
-
-            print("TEXT LENGTH:", len(processed_text))
-            print("AI SCORE:", ai_prob)
-
-            # 6️⃣ Save to DB
-            doc = Document(
-                user_id=session["user_id"],
-                filename=filename,
-                file_type=filename.rsplit(".", 1)[-1],
-                original_text=processed_text,
-                plagiarism_score=plagiarism_score,
-                ai_generated_prob=ai_prob,
-                similarity_report=json.dumps(similarity_report)
-            )
-
-            db.session.add(doc)
-            db.session.commit()
-
-            flash("File uploaded and analyzed successfully!")
-            return redirect(url_for("dashboard"))
-
-    
-
-        return render_template("upload.html")
-
+        return render_template(
+            "document_detail.html",
+            document=doc,
+            results=report,     # ✅ matches template
+            ai_score=ai_score
+        )
 
 
     return app

@@ -1,104 +1,63 @@
 {% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
 
-<h3 class="mb-4">Uploaded Documents</h3>
+<h2 class="mb-4">Dashboard</h2>
 
-<div class="mb-4">
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card kpi-card">
+            <h6>Total Documents</h6>
+            <h3>{{ total_docs }}</h3>
+        </div>
+    </div>
 
-<a href="{{ url_for('upload') }}" class="btn btn-primary">
+    <div class="col-md-4">
+        <div class="card kpi-card">
+            <h6>Avg Plagiarism</h6>
+            <h3>{{ avg_plagiarism }}%</h3>
+        </div>
+    </div>
 
-Upload Document
-
-</a>
-
+    <div class="col-md-4">
+        <div class="card kpi-card">
+            <h6>AI Score</h6>
+            <h3>{{ avg_ai }}%</h3>
+        </div>
+    </div>
 </div>
 
-<div class="card shadow-sm">
-
-<div class="card-body">
-
-{% if documents %}
-
-<div class="table-responsive">
-
-<table class="table table-hover">
-
-<thead class="table-dark">
-
-<tr>
-
-<th>#</th>
-<th>Filename</th>
-<th>Plagiarism</th>
-<th>AI Probability</th>
-<th>Text Length</th>
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for doc in documents %}
-
-<tr>
-
-<td>{{ loop.index }}</td>
-
-<td>{{ doc.filename }}</td>
-
-<td>
-
-<span class="badge bg-danger">
-
-{{ "%.2f"|format(doc.plagiarism_score) }}%
-
-</span>
-
-</td>
-
-<td>
-
-<span class="badge bg-warning text-dark">
-
-{{ "%.2f"|format(doc.ai_generated_prob) }}%
-
-</span>
-
-</td>
-
-<td>{{ doc.original_text|length }}</td>
-
-<td>
-
-<a href="/document/{{ doc.id }}" class="btn btn-sm btn-outline-primary">
-
-View
-
-</a>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+<div class="row">
+    <div class="col-md-6">
+        <canvas id="pieChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="barChart"></canvas>
+    </div>
 </div>
 
-{% else %}
+<script>
+new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+        labels: ["Plagiarized", "Original"],
+        datasets: [{
+            data: [{{ plagiarized }}, {{ original }}]
+        }]
+    }
+});
 
-<p>No documents uploaded.</p>
-
-{% endif %}
-
-</div>
-
-</div>
+new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+        labels: {{ labels|safe }},
+        datasets: [{
+            label: "Similarity %",
+            data: {{ values|safe }}
+        }]
+    }
+});
+</script>
 
 {% endblock %}
