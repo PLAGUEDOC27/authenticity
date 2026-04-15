@@ -153,38 +153,37 @@ def create_app():
     
     @app.route("/similarity-graph")
     def similarity_graph():
-        docs = Document.query.all()
-        texts = [d.original_text for d in docs if d.original_text]
 
-        if len(texts) < 2:
+        docs = Document.query.filter(Document.original_text.isnot(None)).all()
+
+        if len(docs) < 2:
             return "Not enough documents to compare"
+
+        texts = [d.original_text for d in docs]
+        labels = [d.filename for d in docs]
 
         from sklearn.feature_extraction.text import TfidfVectorizer
         from sklearn.metrics.pairwise import cosine_similarity
 
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(texts)
-        similarity_matrix = cosine_similarity(tfidf_matrix)
-
-        # Plot heatmap
-        fig, ax = plt.subplots()
-        cax = ax.matshow(similarity_matrix)
-        fig.colorbar(cax)
-
-        plt.title("Document Similarity Matrix")
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png")
-        buf.seek(0)
-
-        image_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-        plt.close()
+        tfidf = TfidfVectorizer()
+        matrix = cosine_similarity(tfidf.fit_transform(texts)).tolist()
 
         return render_template(
             "similarity_graph.html",
-            image=image_base64
+            labels=labels,
+            matrix=matrix
         )
 
+    @app.route("/compare")
+    def compare_docs():
+
+        a = request.args.get("a")
+        b = request.args.get("b")
+
+        doc1 = Document.query.get_or_404(a)
+        doc2 = Document.query.get_or_404(b)
+
+        return render_template("compare.html", doc1=doc1, doc2=doc2)
     return app
 
 

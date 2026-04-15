@@ -142,31 +142,32 @@ def dashboard():
 @document_bp.route("/document/<int:doc_id>")
 def document_detail(doc_id):
 
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
     doc = Document.query.get_or_404(doc_id)
 
-    report = []
-    if doc.similarity_report:
-        try:
-            report = json.loads(doc.similarity_report)
-        except:
-            report = []
+    report = json.loads(doc.similarity_report) if doc.similarity_report else []
 
-    ai_score = round(doc.ai_generated_prob or 0.0, 2)
+    ai_score = round(doc.ai_generated_prob or 0, 2)
 
-    # Group by source (Turnitin style)
-    grouped = defaultdict(list)
+    # 🔥 create highlight map
+    def normalize(t):
+        import re
+        return re.sub(r'[^a-zA-Z0-9 ]', '', t.lower()).strip()
+
+    highlights = []
 
     for item in report:
-        grouped[item.get("source_document", "Unknown")].append(item)
+        highlights.append({
+            "sentence": normalize(item["sentence"]),
+            "raw_sentence": item["sentence"],
+            "similarity": item["similarity"],
+            "source": item["source_document"]
+        })
 
     return render_template(
         "document_detail.html",
         document=doc,
         results=report,
-        grouped_results=dict(grouped),
+        highlights=highlights,
         ai_score=ai_score
     )
 

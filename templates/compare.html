@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h3>Document Comparison</h3>
+
+    <div class="row mt-3">
+
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h5>{{ doc1.filename }}</h5>
+                <p>{{ doc1.original_text[:2000] }}</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h5>{{ doc2.filename }}</h5>
+                <p>{{ doc2.original_text[:2000] }}</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -37,7 +37,9 @@
         background: #1d4ed8;
     }
     </style>
-    
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <meta charset="UTF-8">
     <title>{% block title %}Authenticity{% endblock %}</title>
 
@@ -49,6 +51,18 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+        $('select').select2({
+            width: '100%',
+            placeholder: "Search document...",
+            allowClear: true
+        });
+    });
+    </script>
 </head>
 <body>
 

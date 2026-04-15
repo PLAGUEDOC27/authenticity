@@ -1,57 +1,60 @@
-{% extends "base.html" %}
-{% block content %}
+<h2 class="mb-3">Analysis Result</h2>
 
-<h3 style="font-weight:700;">{{ document.filename }}</h3>
-
-<div class="row mt-3">
-
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h6>AI Score</h6>
-            <h3>{{ ai_score }}%</h3>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h6>Plagiarism Score</h6>
-            <h3>{{ document.plagiarism_score }}%</h3>
-        </div>
-    </div>
-
+<div class="mb-2">
+    <strong>File:</strong> {{ document.filename }} <br>
+    <strong>AI Score:</strong> {{ ai_score }}%
 </div>
 
 <hr>
 
-{% for source, items in grouped_results.items() %}
+<!-- FULL TEXT DISPLAY -->
+<div class="card p-3">
 
-<div class="card p-3 mt-3">
+    {% set sentences = document.original_text.split('.') %}
 
-    <h6 style="color:#2563eb;">Source: {{ source }}</h6>
+    {% for sentence in sentences %}
 
-    {% for item in items %}
+        {% set clean = sentence.strip() %}
+        {% set norm_clean = clean.lower() %}
 
-        <div style="
-            padding:10px;
-            margin-top:10px;
-            border-left:5px solid
-            {% if item.similarity > 70 %}#ef4444
-            {% elif item.similarity > 40 %}#f59e0b
-            {% else %}#22c55e
+        {% set matched = false %}
+        {% set score = 0 %}
+        {% set source = "" %}
+
+        {% for h in highlights %}
+
+            {% if h.sentence in norm_clean %}
+
+                {% set matched = true %}
+                {% set score = h.similarity %}
+                {% set source = h.source %}
+
             {% endif %}
-        ; background:#f9fafb; border-radius:8px;">
-
-            {{ item.sentence }}
-            <span style="float:right;font-weight:600;">
-                {{ item.similarity }}%
-            </span>
-
-        </div>
 
     {% endfor %}
 
-</div>
+    <div style="
+        padding:8px;
+        margin-bottom:6px;
+        border-radius:6px;
+
+        {% if matched and score > 70 %}
+            background:#f8d7da;
+            border-left:5px solid #dc3545;
+        {% elif matched and score > 40 %}
+            background:#fff3cd;
+            border-left:5px solid #ffc107;
+        {% elif matched %}
+            background:#d4edda;
+            border-left:5px solid #28a745;
+        {% endif %}
+    "
+    title="{% if matched %}Source: {{ source }} | {{ score }}%{% endif %}">
+
+        {{ clean }}.
+
+    </div>
 
 {% endfor %}
 
-{% endblock %}
+</div>

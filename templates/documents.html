@@ -3,6 +3,22 @@
 {% block content %}
 <h2>Documents</h2>
 
+<form action="/compare" method="GET">
+    <select name="a">
+        {% for doc in documents %}
+        <option value="{{ doc.id }}">{{ doc.filename }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="b">
+        {% for doc in documents %}
+        <option value="{{ doc.id }}">{{ doc.filename }}</option>
+        {% endfor %}
+    </select>
+
+    <button class="btn btn-primary">Compare</button>
+</form>
+
 <table class="table table-bordered">
     <thead>
         <tr>
