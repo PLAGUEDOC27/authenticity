@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+
 
 from extensions import db
 from models.user import User
@@ -9,28 +10,37 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/auth/register", methods=["POST"])
 def register():
-    data = request.get_json()
-    if not data:
-        return jsonify({"msg": "Missing JSON body"}), 400
 
-    username = data.get("username")
-    email = data.get("email")
-    password = data.get("password")
+    if request.is_json:
+        data = request.get_json()
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+    else:
+        username = request.form.get("username")
+        email = request.form.get("email")
+        password = request.form.get("password")
 
     if not username or not email or not password:
-        return jsonify({"msg": "username, email and password are required"}), 400
+        return "All fields required", 400
 
     if User.query.filter_by(username=username).first():
-        return jsonify({"msg": "Username already exists"}), 400
-    if User.query.filter_by(email=email).first():
-        return jsonify({"msg": "Email already exists"}), 400
+        return "Username exists", 400
 
-    hashed = generate_password_hash(password)
-    user = User(username=username, email=email, password_hash=hashed)
+    if User.query.filter_by(email=email).first():
+        return "Email exists", 400
+
+    user = User(
+        username=username,
+        email=email,
+        password_hash=generate_password_hash(password),
+        role="user"
+    )
+
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"msg": "User created"}), 201
+    return redirect(url_for("login"))
 
 
 @auth_bp.route("/auth/login", methods=["POST"])

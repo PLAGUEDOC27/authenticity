@@ -1,60 +1,218 @@
-<h2 class="mb-3">Analysis Result</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document Detail - Authenticity</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-<div class="mb-2">
-    <strong>File:</strong> {{ document.filename }} <br>
-    <strong>AI Score:</strong> {{ ai_score }}%
-</div>
+<style>
+:root {
+    --sidebar-width: 240px;
+    --primary-dark: #0f172a;
+    --bg-light: #f1f5f9;
 
-<hr>
+    --high-plag: rgba(244, 63, 94, 0.2);
+    --mid-plag: rgba(245, 158, 11, 0.2);
+    --low-plag: rgba(34, 197, 94, 0.15);
+}
 
-<!-- FULL TEXT DISPLAY -->
-<div class="card p-3">
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-light);
+}
 
-    {% set sentences = document.original_text.split('.') %}
+/* ===== LAYOUT ===== */
+.layout {
+    display: flex;
+}
 
-    {% for sentence in sentences %}
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--primary-dark);
+    color: white;
+    position: fixed;
+    padding: 20px;
+}
 
-        {% set clean = sentence.strip() %}
-        {% set norm_clean = clean.lower() %}
+.sidebar h5 {
+    margin-bottom: 30px;
+}
 
-        {% set matched = false %}
-        {% set score = 0 %}
-        {% set source = "" %}
+.sidebar a {
+    display: block;
+    color: #cbd5f5;
+    padding: 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-bottom: 8px;
+}
 
-        {% for h in highlights %}
+.sidebar a:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
 
-            {% if h.sentence in norm_clean %}
+/* ===== MAIN ===== */
+.main {
+    margin-left: var(--sidebar-width);
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
-                {% set matched = true %}
-                {% set score = h.similarity %}
-                {% set source = h.source %}
+/* HEADER */
+.report-header {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 1.5rem;
+}
 
-            {% endif %}
+/* CONTENT */
+.main-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
 
-    {% endfor %}
+/* DOCUMENT VIEW */
+.document-viewer {
+    flex: 1;
+    overflow-y: auto;
+    background: #fff;
+    padding: 3rem;
+}
 
-    <div style="
-        padding:8px;
-        margin-bottom:6px;
-        border-radius:6px;
+.document-paper {
+    max-width: 800px;
+    margin: auto;
+    line-height: 1.8;
+}
 
-        {% if matched and score > 70 %}
-            background:#f8d7da;
-            border-left:5px solid #dc3545;
-        {% elif matched and score > 40 %}
-            background:#fff3cd;
-            border-left:5px solid #ffc107;
-        {% elif matched %}
-            background:#d4edda;
-            border-left:5px solid #28a745;
-        {% endif %}
-    "
-    title="{% if matched %}Source: {{ source }} | {{ score }}%{% endif %}">
+/* SIDEBAR RIGHT */
+.sources-sidebar {
+    width: 360px;
+    background: #f8fafc;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
 
-        {{ clean }}.
+/* HIGHLIGHTS */
+.hl-high { background: var(--high-plag); border-bottom: 2px solid red; }
+.hl-mid { background: var(--mid-plag); border-bottom: 2px solid orange; }
+.hl-low { background: var(--low-plag); border-bottom: 2px solid green; }
+
+/* CARD */
+.source-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    {% include "sidebar.html" %}
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="report-header d-flex justify-content-between align-items-center">
+
+            <div class="d-flex align-items-center">
+                <a href="/documents" class="btn btn-sm btn-light me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <div>
+                    <h6 class="mb-0 fw-bold">{{ document.filename }}</h6>
+                    <small class="text-muted">Analysis complete</small>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary">
+                    AI: {{ ai_score }}%
+                </span>
+
+                <a href="/document/{{ document.id }}/download"
+                   class="btn btn-dark btn-sm">
+                   Download
+                </a>
+            </div>
+
+        </div>
+
+        <!-- CONTENT -->
+        <div class="main-content">
+
+            <!-- TEXT -->
+            <div class="document-viewer">
+                <div class="document-paper">
+
+                    {% for s in sentences %}
+                    <span class="{% if s.score > 70 %}hl-high{% elif s.score > 40 %}hl-mid{% elif s.score > 0 %}hl-low{% endif %}"
+                          data-bs-toggle="tooltip"
+                          title="Source: {{ s.source }} | {{ s.score }}%">
+
+                        {{ s.text }}
+
+                    </span>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="sources-sidebar">
+
+                <h6 class="fw-bold mb-3">Matches</h6>
+
+                {% for s in sentences if s.score > 0 %}
+                <div class="source-card">
+
+                    <div class="fw-bold small mb-1">{{ s.source }}</div>
+
+                    <div class="small text-muted mb-2">
+                        "{{ s.text }}"
+                    </div>
+
+                    <span class="badge 
+                        {% if s.score > 70 %}bg-danger
+                        {% elif s.score > 40 %}bg-warning
+                        {% else %}bg-success{% endif %}">
+                        {{ s.score }}%
+                    </span>
+
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
 
     </div>
 
-{% endfor %}
-
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+    new bootstrap.Tooltip(el)
+});
+</script>
+
+</body>
+</html>

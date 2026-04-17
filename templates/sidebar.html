@@ -1,0 +1,72 @@
+
+<style>
+:root {
+    --sidebar-width: 250px;
+    --primary-dark: #0f172a;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: var(--sidebar-width);
+    height: 100vh;
+
+    background: var(--primary-dark);
+    color: white;
+
+    padding: 20px;
+    z-index: 1000;
+}
+
+.sidebar h4 {
+    font-weight: 700;
+    margin-bottom: 30px;
+    font-size: 18px;
+}
+
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #cbd5e1 !important;
+    text-decoration: none !important;
+
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+
+    font-size: 14px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #1e293b;
+    color: white !important;
+}
+</style>
+<div class="sidebar">
+    <h4 class="mb-4">Authenticity</h4>
+
+    <a href="/dashboard" class="{% if active=='dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+
+    <a href="/documents" class="{% if active=='documents' %}active{% endif %}">
+        <i class="bi bi-file-text"></i> Documents
+    </a>
+
+    <a href="/compare" class="{% if active=='compare' %}active{% endif %}">
+        <i class="bi bi-diagram-3"></i> Compare Docs
+    </a>
+
+    <a href="/resume/upload" class="{% if active=='resume' %}active{% endif %}">
+        <i class="bi bi-briefcase"></i> Resume Screening
+    </a>
+
+    <a href="/logout">
+        <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+</div>

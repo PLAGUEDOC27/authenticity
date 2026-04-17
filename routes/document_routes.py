@@ -13,6 +13,7 @@ from utils.text_preprocessing import preprocess_text
 from utils.plagiarism_engine import check_plagiarism
 from utils.ai_detector import ai_probability_score
 from utils.pdf_export import generate_pdf
+from utils.scoring import compute_jd_score
 
 document_bp = Blueprint("documents", __name__)
 
@@ -91,7 +92,7 @@ def upload_document():
     db.session.commit()
 
     flash("File uploaded and analyzed successfully!", "success")
-    return redirect(url_for("documents.dashboard"))
+    return redirect(url_for("documents.documents"))
 
 
 # =========================
@@ -118,23 +119,39 @@ def dashboard():
 
     documents = Document.query.all()
 
-    docs_for_display = []
+    total_docs = len(documents)
 
-    for d in documents:
-        docs_for_display.append({
-            "id": d.id,
-            "filename": d.filename,
-            "user_id": d.user_id,
-            "text_length": len(d.original_text or ""),
-            "plagiarism_score": d.plagiarism_score or 0.0,
-            "ai_generated_prob": round(d.ai_generated_prob or 0.0, 2)
-        })
+    # SAFE calculations
+    if total_docs > 0:
+        avg_plagiarism = round(
+            sum(d.plagiarism_score or 0 for d in documents) / total_docs, 2
+        )
+        avg_ai = round(
+            sum(d.ai_generated_prob or 0 for d in documents) / total_docs, 2
+        )
+    else:
+        avg_plagiarism = 0
+        avg_ai = 0
 
-    print("DOC COUNT:", len(documents))
-    print("DASHBOARD SAMPLE:", docs_for_display[:2])
+    # CHART DATA
+    labels = [d.filename for d in documents]
+    values = [d.plagiarism_score or 0 for d in documents]
 
-    return render_template("dashboard.html", documents=docs_for_display)
+    # RESUMES (filtered from same table)
+    resumes = Document.query.filter_by(type="resume").all()
 
+    for r in resumes:
+        r.jd_score = compute_jd_score(r.original_text)
+
+    return render_template(
+        "dashboard.html",
+        total_docs=total_docs,
+        avg_plagiarism=avg_plagiarism,
+        avg_ai=avg_ai,
+        labels=labels,
+        values=values,
+        resumes=resumes
+    )
 
 # =========================
 # 📄 DOCUMENT DETAIL (TURNITIN VIEW FIX)
@@ -142,32 +159,51 @@ def dashboard():
 @document_bp.route("/document/<int:doc_id>")
 def document_detail(doc_id):
 
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     doc = Document.query.get_or_404(doc_id)
 
-    report = json.loads(doc.similarity_report) if doc.similarity_report else []
+    # Load similarity report
+    report = []
+    if doc.similarity_report:
+        try:
+            report = json.loads(doc.similarity_report)
+        except:
+            report = []
+
+    # 🔥 BUILD SENTENCE STRUCTURE (THIS IS KEY)
+    sentences = []
+    raw_sentences = doc.original_text.split(".")
+
+    for s in raw_sentences:
+        clean = s.strip()
+        if not clean:
+            continue
+
+        matched = False
+        score = 0
+        source = ""
+
+        for item in report:
+            if item["sentence"] in clean.lower():
+                matched = True
+                score = item["similarity"]
+                source = item["source_document"]
+                break
+
+        sentences.append({
+            "text": clean + ". ",
+            "score": score,
+            "source": source
+        })
 
     ai_score = round(doc.ai_generated_prob or 0, 2)
-
-    # 🔥 create highlight map
-    def normalize(t):
-        import re
-        return re.sub(r'[^a-zA-Z0-9 ]', '', t.lower()).strip()
-
-    highlights = []
-
-    for item in report:
-        highlights.append({
-            "sentence": normalize(item["sentence"]),
-            "raw_sentence": item["sentence"],
-            "similarity": item["similarity"],
-            "source": item["source_document"]
-        })
 
     return render_template(
         "document_detail.html",
         document=doc,
-        results=report,
-        highlights=highlights,
+        sentences=sentences,   # ✅ REQUIRED
         ai_score=ai_score
     )
 

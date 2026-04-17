@@ -10,7 +10,6 @@ from models.user import User
 from models.document import Document
 
 from utils.text_extractor import extract_text_from_file
-from utils.plagiarism import calculate_plagiarism,clean_text
 from utils.ai_detector import ai_probability_score
 from utils.text_preprocessing import preprocess_text
 
@@ -24,6 +23,8 @@ from models.document import Document
 import json
 
 from utils.analytics import generate_plagiarism_chart
+from functools import wraps
+from flask import session, redirect, url_for, abort
 
 
 
@@ -56,10 +57,36 @@ def create_app():
     from routes.document_routes import document_bp
     app.register_blueprint(document_bp)
 
+    from routes.admin_routes import admin_bp
+    app.register_blueprint(admin_bp)
+
+    from routes.resume_routes import resume_bp
+    app.register_blueprint(resume_bp)
+
+    from routes.auth_routes import auth_bp   # ✅ ADD THIS
+    app.register_blueprint(auth_bp)
+
     # ---------------- ROUTES ----------------
     @app.route("/")
     def index():
         return redirect(url_for("login"))
+
+    def admin_required(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+
+            if "user_id" not in session:
+                return redirect(url_for("login"))
+
+            user = User.query.get(session["user_id"])
+
+            if not user or user.role != "admin":
+                return abort(403)
+
+            return f(*args, **kwargs)
+
+        return wrapper
+
 
 
     @app.route("/login", methods=["GET", "POST"])
@@ -90,35 +117,13 @@ def create_app():
         session.clear()
         return redirect(url_for("login"))
 
-    @app.route("/create_user", methods=["GET", "POST"])
-    def create_user():
-        if request.method == "POST":
-            username = request.form["username"]
-            email = request.form["email"]
-            password = request.form["password"]
-
-            existing_user = User.query.filter(
-                (User.username == username) | (User.email == email)
-            ).first()
-
-            if existing_user:
-                return render_template("create_user.html", error="Username or Email already exists")
-
-            user = User(
-                username=username,
-                email=email,
-                password_hash=generate_password_hash(password),
-                role="user"
-            )
-
-            db.session.add(user)
-            db.session.commit()
-
-            return redirect(url_for("login"))
 
     
     @app.route("/admin")
+    @admin_required
     def admin_dashboard():
+
+        users = User.query.all()   # ✅ FIX
 
         total_users = User.query.count()
         total_docs = Document.query.count()
@@ -126,7 +131,7 @@ def create_app():
 
         avg_plagiarism = round(
             sum(d.plagiarism_score for d in docs) / total_docs, 2
-        )   if total_docs > 0 else 0
+        ) if total_docs > 0 else 0
 
         avg_ai = round(
             sum(d.ai_generated_prob for d in docs) / total_docs, 2
@@ -136,13 +141,10 @@ def create_app():
             (d.plagiarism_score for d in docs),
             default=0
         )
-        print("DOCS:", docs)
-        print("AVG AI:", avg_ai)
-        print("AVG PLAG:", avg_plagiarism )
-
 
         return render_template(
             "admin_dashboard.html",
+            users=users,   # ✅ now valid
             total_users=total_users,
             total_docs=total_docs,
             avg_plagiarism=avg_plagiarism,
@@ -180,10 +182,17 @@ def create_app():
         a = request.args.get("a")
         b = request.args.get("b")
 
+        # 🟡 If no documents selected → show selection UI
+        if not a or not b:
+            docs = Document.query.all()
+            return render_template("compare_select.html", documents=docs)
+
+        # 🟢 If selected → load docs
         doc1 = Document.query.get_or_404(a)
         doc2 = Document.query.get_or_404(b)
 
         return render_template("compare.html", doc1=doc1, doc2=doc2)
+    
     return app
 
 

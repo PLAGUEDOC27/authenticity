@@ -18,3 +18,9 @@ class Document(db.Model):
     ai_generated_prob = db.Column(db.Float, default=0.0)   # ✅ ADD THIS
 
     similarity_report = db.Column(db.Text)
+
+    type = db.Column(db.String(20), default='normal')
+
+    group_id = db.Column(db.Integer, nullable=True)  
+
+    match_score = db.Column(db.Float, default=0)

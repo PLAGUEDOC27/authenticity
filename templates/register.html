@@ -50,23 +50,38 @@
         <div class="msg">{{ msg }}</div>
     {% endif %}
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div style="color:
+        {% if category == 'danger' %} red
+        {% else %} green
+        {% endif %};
+        margin-bottom:10px;">
+        {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
     <form method="POST">
-        <label>Username</label>
-        <input type="text" name="username" placeholder="Enter username" required>
 
-        <label>Email</label>
-        <input type="email" name="email" placeholder="Enter email" required>
+    <label>Username</label>
+    <input type="text" name="username" required>
 
-        <label>Password</label>
-        <input type="password" name="password" placeholder="Enter password" required>
+    <label>Email</label>
+    <input type="email" name="email" required>
 
-        <label>Role</label>
-        <select name="role">
-            <option value="student">Student</option>
-            <option value="admin">Admin</option>
-        </select>
+    <label>Password</label>
+    <input type="password" name="password" required>
 
-        <button type="submit">Create User</button>
+    <label>Role</label>
+    <select name="role" required>
+        <option value="admin">Admin</option>
+        <option value="recruiter">Recruiter</option>
+        <option value="user">User</option>
+    </select>
+
+    <button type="submit">Create User</button>
+
     </form>
 </div>
 
