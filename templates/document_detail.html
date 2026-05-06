@@ -3,202 +3,281 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Document Detail - Authenticity</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <style>
-:root {
-    --sidebar-width: 240px;
-    --primary-dark: #0f172a;
-    --bg-light: #f1f5f9;
-
-    --high-plag: rgba(244, 63, 94, 0.2);
-    --mid-plag: rgba(245, 158, 11, 0.2);
-    --low-plag: rgba(34, 197, 94, 0.15);
-}
-
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-light);
-}
-
-/* ===== LAYOUT ===== */
-.layout {
-    display: flex;
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar {
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: var(--primary-dark);
-    color: white;
-    position: fixed;
-    padding: 20px;
-}
-
-.sidebar h5 {
-    margin-bottom: 30px;
-}
-
-.sidebar a {
-    display: block;
-    color: #cbd5f5;
-    padding: 10px;
-    border-radius: 6px;
-    text-decoration: none;
-    margin-bottom: 8px;
-}
-
-.sidebar a:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-}
-
-/* ===== MAIN ===== */
 .main {
-    margin-left: var(--sidebar-width);
-    width: 100%;
-    height: 100vh;
+    margin-left: 250px;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
 /* HEADER */
-.report-header {
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 1rem 1.5rem;
+.detail-header {
+    margin: 24px 34px 20px;
+    padding: 18px 22px;
+    border-radius: 18px;
+}
+
+.file-title {
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 3px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 /* CONTENT */
-.main-content {
-    display: flex;
+.detail-content {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 22px;
+    padding: 0 34px 34px;
     flex: 1;
-    overflow: hidden;
+    min-height: 0;
 }
 
-/* DOCUMENT VIEW */
 .document-viewer {
-    flex: 1;
     overflow-y: auto;
-    background: #fff;
-    padding: 3rem;
+    padding: 28px;
+    border-radius: 18px;
 }
 
 .document-paper {
-    max-width: 800px;
+    max-width: 850px;
     margin: auto;
-    line-height: 1.8;
+    line-height: 1.9;
+    color: #dbeafe;
+    font-size: 15px;
+    white-space: normal;
 }
 
-/* SIDEBAR RIGHT */
+/* RIGHT PANEL */
 .sources-sidebar {
-    width: 360px;
-    background: #f8fafc;
-    padding: 1.5rem;
+    padding: 22px;
+    border-radius: 18px;
     overflow-y: auto;
 }
 
-/* HIGHLIGHTS */
-.hl-high { background: var(--high-plag); border-bottom: 2px solid red; }
-.hl-mid { background: var(--mid-plag); border-bottom: 2px solid orange; }
-.hl-low { background: var(--low-plag); border-bottom: 2px solid green; }
+.sources-sidebar h5 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
 
-/* CARD */
+/* HIGHLIGHTS */
+.hl-high {
+    background: rgba(239,68,68,0.18);
+    border-bottom: 2px solid #ef4444;
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 5px;
+}
+
+.hl-mid {
+    background: rgba(245,158,11,0.18);
+    border-bottom: 2px solid #f59e0b;
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 5px;
+}
+
+.hl-low {
+    background: rgba(34,197,94,0.16);
+    border-bottom: 2px solid #22c55e;
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 5px;
+}
+
+/* MATCH CARDS */
 .source-card {
-    background: #fff;
-    border-radius: 10px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid #e2e8f0;
+    padding: 15px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+.source-card-title {
+    font-weight: 800;
+    color: white;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.source-snippet {
+    font-size: 13px;
+    line-height: 1.55;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+.score-badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.score-high {
+    background: rgba(239,68,68,0.14);
+    color: #fca5a5;
+    border: 1px solid rgba(239,68,68,0.3);
+}
+
+.score-mid {
+    background: rgba(245,158,11,0.14);
+    color: #fcd34d;
+    border: 1px solid rgba(245,158,11,0.3);
+}
+
+.score-low {
+    background: rgba(34,197,94,0.14);
+    color: #86efac;
+    border: 1px solid rgba(34,197,94,0.3);
+}
+
+.empty-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.empty-state i {
+    font-size: 34px;
+    color: #22c55e;
+    margin-bottom: 10px;
+}
+
+/* BOOTSTRAP TOOLTIP DARKER */
+.tooltip-inner {
+    background: #111827;
+    color: #e5e7eb;
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+@media (max-width: 1050px) {
+    .main {
+        margin-left: 0;
+    }
+
+    .detail-header {
+        margin: 22px;
+    }
+
+    .detail-content {
+        grid-template-columns: 1fr;
+        padding: 0 22px 22px;
+    }
+
+    .sources-sidebar {
+        max-height: none;
+    }
 }
 </style>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/glass_theme.css') }}">
 </head>
 
 <body>
 
-<div class="layout">
+{% include "sidebar.html" %}
 
-    {% include "sidebar.html" %}
+<div class="main">
 
-    <!-- MAIN -->
-    <div class="main">
+    <!-- HEADER -->
+    <div class="card detail-header d-flex justify-content-between align-items-center">
 
-        <!-- HEADER -->
-        <div class="report-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <a href="/documents" class="btn btn-sm me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
 
-            <div class="d-flex align-items-center">
-                <a href="/documents" class="btn btn-sm btn-light me-3">
-                    <i class="bi bi-arrow-left"></i>
-                </a>
-
-                <div>
-                    <h6 class="mb-0 fw-bold">{{ document.filename }}</h6>
-                    <small class="text-muted">Analysis complete</small>
-                </div>
+            <div>
+                <div class="file-title">{{ document.filename }}</div>
+                <small class="text-muted">Analysis complete</small>
             </div>
-
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-primary">
-                    AI: {{ ai_score }}%
-                </span>
-
-                <a href="/document/{{ document.id }}/download"
-                   class="btn btn-dark btn-sm">
-                   Download
-                </a>
-            </div>
-
         </div>
 
-        <!-- CONTENT -->
-        <div class="main-content">
+        <div class="header-actions">
+            <span class="score-badge score-low">
+                AI: {{ ai_score }}%
+            </span>
 
-            <!-- TEXT -->
-            <div class="document-viewer">
-                <div class="document-paper">
+            <a href="/document/{{ document.id }}/download" class="btn btn-sm">
+                <i class="bi bi-download me-1"></i>
+                Download
+            </a>
+        </div>
 
-                    {% for s in sentences %}
-                    <span class="{% if s.score > 70 %}hl-high{% elif s.score > 40 %}hl-mid{% elif s.score > 0 %}hl-low{% endif %}"
-                          data-bs-toggle="tooltip"
-                          title="Source: {{ s.source }} | {{ s.score }}%">
+    </div>
 
-                        {{ s.text }}
+    <!-- CONTENT -->
+    <div class="detail-content">
 
-                    </span>
-                    {% endfor %}
+        <!-- DOCUMENT VIEW -->
+        <div class="card document-viewer">
+            <div class="document-paper">
 
-                </div>
-            </div>
-
-            <!-- RIGHT PANEL -->
-            <div class="sources-sidebar">
-
-                <h6 class="fw-bold mb-3">Matches</h6>
-
-                {% for s in sentences if s.score > 0 %}
-                <div class="source-card">
-
-                    <div class="fw-bold small mb-1">{{ s.source }}</div>
-
-                    <div class="small text-muted mb-2">
-                        "{{ s.text }}"
-                    </div>
-
-                    <span class="badge 
-                        {% if s.score > 70 %}bg-danger
-                        {% elif s.score > 40 %}bg-warning
-                        {% else %}bg-success{% endif %}">
-                        {{ s.score }}%
-                    </span>
-
-                </div>
+                {% for s in sentences %}
+                <span class="{% if s.score > 70 %}hl-high{% elif s.score > 40 %}hl-mid{% elif s.score > 0 %}hl-low{% endif %}"
+                      data-bs-toggle="tooltip"
+                      title="Source: {{ s.source }} | {{ s.score }}%">
+                    {{ s.text }}
+                </span>
                 {% endfor %}
 
             </div>
+        </div>
+
+        <!-- SOURCES PANEL -->
+        <div class="card sources-sidebar">
+
+            <h5>
+                <i class="bi bi-link-45deg me-2"></i>
+                Matched Sources
+            </h5>
+
+            {% set matched = sentences|selectattr("score", "gt", 0)|list %}
+
+            {% if matched %}
+                {% for s in matched %}
+                <div class="source-card">
+
+                    <div class="source-card-title">
+                        {{ s.source }}
+                    </div>
+
+                    <div class="source-snippet">
+                        "{{ s.text }}"
+                    </div>
+
+                    {% if s.score > 70 %}
+                        <span class="score-badge score-high">{{ s.score }}%</span>
+                    {% elif s.score > 40 %}
+                        <span class="score-badge score-mid">{{ s.score }}%</span>
+                    {% else %}
+                        <span class="score-badge score-low">{{ s.score }}%</span>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-shield-check d-block"></i>
+                    No matched sources found.
+                </div>
+            {% endif %}
 
         </div>
 
@@ -210,7 +289,7 @@ body {
 
 <script>
 document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-    new bootstrap.Tooltip(el)
+    new bootstrap.Tooltip(el);
 });
 </script>
 

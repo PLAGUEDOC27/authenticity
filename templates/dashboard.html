@@ -1,225 +1,328 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Authenticity</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-:root {
-    --sidebar-width: 250px;
-    --primary-dark: #0f172a;
-    --bg-light: #f8fafc;
-}
+    <title>Dashboard - Authenticity</title>
 
-body {
-    margin: 0;
-    font-family: 'Inter', system-ui;
-    background: var(--bg-light);
-}
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
 
-/* 🔥 SIDEBAR */
-.sidebar {
-    position: fixed;
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: var(--primary-dark);
-    color: white;
-    padding: 20px;
-}
+    <style>
+      .main {
+        margin-left: 250px;
+        padding: 34px;
+        min-height: 100vh;
+      }
 
-.sidebar h4 {
-    font-weight: 700;
-    margin-bottom: 30px;
-}
+      /* HEADER */
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 28px;
+      }
 
-.sidebar a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #cbd5e1;
-    text-decoration: none;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
+      .page-header h1 {
+        font-size: 30px;
+        font-weight: 800;
+        margin-bottom: 6px;
+      }
 
-.sidebar a:hover,
-.sidebar a.active {
-    background: #1e293b;
-    color: white;
-}
+      /* KPI */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 28px;
+      }
 
-/* 🔥 MAIN */
-.main {
-    margin-left: var(--sidebar-width);
-    padding: 30px;
-}
+      .kpi-card {
+        padding: 22px;
+      }
 
-/* 🔥 CARDS */
-.card {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
+      .kpi-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
 
-/* 🔥 KPI ICON */
-.icon-box {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+      .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 229, 255, 0.12);
+        color: #00e5ff;
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        font-size: 20px;
+      }
 
-/* 🔥 CHART */
-.chart-container {
-    height: 300px;
-}
-</style>
-</head>
+      .kpi-label {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-bottom: 4px;
+      }
 
-<body>
+      .kpi-value {
+        color: #fff;
+        font-size: 26px;
+        font-weight: 900;
+        line-height: 1;
+      }
 
-{% include "sidebar.html" %}
+      /* PANEL */
+      .panel {
+        overflow: hidden;
+      }
 
-<!-- 🔥 MAIN -->
-<div class="main">
+      .panel-header {
+        padding: 20px 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+      .panel-header strong {
+        color: #fff;
+        font-size: 18px;
+      }
+
+      .panel-body {
+        padding: 0;
+      }
+
+      /* TABLE */
+      .table {
+        margin-bottom: 0;
+      }
+
+      .table th {
+        padding: 14px 18px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .table td {
+        padding: 16px 18px;
+        vertical-align: middle;
+      }
+
+      .file-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .file-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: rgba(116, 1, 192, 0.18);
+        color: #d8b4fe;
+        border: 1px solid rgba(116, 1, 192, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .file-name {
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .score-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 240px;
+      }
+
+      .score-text {
+        width: 58px;
+        text-align: right;
+        font-weight: 800;
+        color: white;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 55px 20px;
+        color: #94a3b8;
+      }
+
+      .empty-state i {
+        font-size: 38px;
+        color: #00e5ff;
+        margin-bottom: 12px;
+      }
+
+      .quick-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 900px) {
+        .main {
+          margin-left: 0;
+          padding: 22px;
+        }
+
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .page-header {
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .panel {
+          overflow-x: auto;
+        }
+
+        table {
+          min-width: 720px;
+        }
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/glass_theme.css') }}"
+    />
+  </head>
+
+  <body>
+    {% include "sidebar.html" %}
+
+    <div class="main">
+      <!-- HEADER -->
+      <div class="page-header">
         <div>
-            <h3 class="fw-bold mb-0">Dashboard</h3>
-            <small class="text-muted">System overview</small>
+          <h1>Dashboard</h1>
+          <p class="text-muted mb-0">
+            System overview and recent analysis activity.
+          </p>
         </div>
-    </div>
 
-    <!-- KPI CARDS -->
-    <div class="row g-4 mb-4">
+        <div class="quick-actions">
+          <a href="/documents/upload" class="btn">
+            <i class="bi bi-cloud-upload me-2"></i>
+            Upload Document
+          </a>
+          <a href="/resume/upload" class="btn">
+            <i class="bi bi-briefcase me-2"></i>
+            Screen Resumes
+          </a>
+        </div>
+      </div>
 
-        <div class="col-md-4">
-            <div class="card p-4">
-                <div class="d-flex align-items-center gap-4">
-                    <div class="icon-box bg-info-subtle text-info">
-                        <i class="bi bi-file-earmark"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted">Documents</small>
-                        <h5>{{ total_docs }}</h5>
-                    </div>
-                </div>
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="card kpi-card">
+          <div class="kpi-content">
+            <div class="kpi-icon">
+              <i class="bi bi-file-earmark-text"></i>
             </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card p-4">
-                <div class="d-flex align-items-center gap-4">
-                    <div class="icon-box bg-warning-subtle text-warning">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted">Avg Plagiarism</small>
-                        <h5>{{ avg_plagiarism }}%</h5>
-                    </div>
-                </div>
+            <div>
+              <div class="kpi-label">Documents</div>
+              <div class="kpi-value">{{ total_docs }}</div>
             </div>
+          </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card p-4">
-                <div class="d-flex align-items-center gap-4">
-                    <div class="icon-box bg-success-subtle text-success">
-                        <i class="bi bi-cpu"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted">AI Score</small>
-                        <h5>{{ avg_ai }}%</h5>
-                    </div>
-                </div>
+        <div class="card kpi-card">
+          <div class="kpi-content">
+            <div class="kpi-icon">
+              <i class="bi bi-exclamation-triangle"></i>
             </div>
+            <div>
+              <div class="kpi-label">Avg Plagiarism</div>
+              <div class="kpi-value">{{ avg_plagiarism }}%</div>
+            </div>
+          </div>
         </div>
 
-    </div>
+        <div class="card kpi-card">
+          <div class="kpi-content">
+            <div class="kpi-icon">
+              <i class="bi bi-cpu"></i>
+            </div>
+            <div>
+              <div class="kpi-label">AI Score</div>
+              <div class="kpi-value">{{ avg_ai }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div class="card analytics-card mt-4">
+      <!-- RESUME SUBMISSIONS -->
+      <div class="card panel">
+        <div class="panel-header">
+          <strong>Resume Submissions</strong>
+          <small class="text-muted d-block"
+            >All uploaded resumes from users</small
+          >
+        </div>
 
-    <div class="card-header bg-white border-bottom p-3">
-        <strong>Resume Submissions</strong>
-        <small class="text-muted d-block">All uploaded resumes from users</small>
-    </div>
-
-    <div class="card-body">
-
-        <table class="table table-hover">
-
+        <div class="panel-body">
+          {% if resumes %}
+          <table class="table table-hover">
             <thead>
-                <tr>
-                    <th>Filename</th>
-                    <th>JD Match Score</th>
-                </tr>
+              <tr>
+                <th>Filename</th>
+                <th>JD Match Score</th>
+              </tr>
             </thead>
 
             <tbody>
+              {% for r in resumes %}
+              <tr>
+                <td>
+                  <div class="file-cell">
+                    <div class="file-icon">
+                      <i class="bi bi-file-earmark-person"></i>
+                    </div>
+                    <div class="file-name">{{ r.filename }}</div>
+                  </div>
+                </td>
 
-                {% for r in resumes %}
-                <tr>
-
-                    <td>
-                        <i class="bi bi-file-earmark-text me-2"></i>
-                        {{ r.filename }}
-                    </td>
-
-                    <td>
-                        <div class="progress">
-                            <div class="progress-bar"
-                                 style="width: {{ r.jd_score }}%">
-                                {{ r.jd_score }}%
-                            </div>
-                        </div>
-                    </td>
-
-                </tr>
-                {% endfor %}
-
+                <td>
+                  <div class="score-wrap">
+                    <div class="progress flex-grow-1">
+                      <div
+                        class="progress-bar"
+                        style="width: {{ r.jd_score }}%"
+                      ></div>
+                    </div>
+                    <div class="score-text">{{ r.jd_score }}%</div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
             </tbody>
-
-        </table>
-
+          </table>
+          {% else %}
+          <div class="empty-state">
+            <i class="bi bi-inbox d-block"></i>
+            <h5>No resume submissions yet</h5>
+            <p class="mb-0">
+              Uploaded resumes will appear here after screening.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
-</div>
-
-</div>
-
-<!-- 🔥 CHART SCRIPT -->
-<script>
-const ctx = document.getElementById('chart').getContext('2d');
-
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: {{ labels | default([]) | tojson }},
-        datasets: [{
-            label: 'Similarity %',
-            data: {{ values | default([]) | tojson }},
-            backgroundColor: '#0f172a',
-            borderRadius: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100
-            }
-        }
-    }
-});
-</script>
-
-</body>
+  </body>
 </html>

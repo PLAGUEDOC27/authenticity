@@ -4,190 +4,265 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Similarity Analysis - Authenticity</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <style>
-:root {
-    --sidebar-width: 250px;
-    --primary-dark: #0f172a;
-    --bg-light: #f8fafc;
-    --border-subtle: #e2e8f0;
-}
-
-body {
-    margin: 0;
-    font-family: 'Inter', system-ui;
-    background: var(--bg-light);
-}
-
-/* SIDEBAR */
-.sidebar {
-    position: fixed;
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: var(--primary-dark);
-    color: white;
-    padding: 20px;
-}
-
-.sidebar a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #cbd5e1;
-    text-decoration: none;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-.sidebar a:hover,
-.sidebar a.active {
-    background: #1e293b;
-    color: white;
-}
-
-/* MAIN */
 .main {
-    margin-left: var(--sidebar-width);
-    padding: 30px;
+    margin-left: 250px;
+    padding: 34px;
+    min-height: 100vh;
 }
 
-/* CARD */
-.analytics-card {
-    background: white;
-    border-radius: 16px;
-    border: 1px solid var(--border-subtle);
-    box-shadow: 0 10px 15px rgba(0,0,0,0.04);
+/* HEADER */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+}
+
+.page-header h1 {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+/* GRID */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+/* PANEL */
+.panel {
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 20px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.panel-header h3 {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.panel-body {
+    padding: 24px;
 }
 
 /* HEATMAP */
 .heatmap-container {
-    background: #f1f5f9;
-    border-radius: 12px;
-    padding: 20px;
+    min-height: 360px;
+    border-radius: 18px;
+    padding: 22px;
     text-align: center;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.1);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .heatmap-img {
     max-width: 100%;
-    border-radius: 6px;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
 }
 
-/* BUTTON */
-.btn-compare {
-    background: var(--primary-dark);
-    color: white;
-    border-radius: 8px;
+/* INSIGHT CARDS */
+.insight-list {
+    display: grid;
+    gap: 14px;
 }
 
-.btn-compare:hover {
-    background: #1e293b;
-    color: white;
+.insight-item {
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.insight-item h6 {
+    margin-bottom: 6px;
+    font-weight: 800;
+}
+
+.insight-item p,
+.insight-item li {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+/* CHART */
+.chart-box {
+    height: 260px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+}
+
+.empty-state i {
+    font-size: 42px;
+    color: #00e5ff;
+    margin-bottom: 12px;
+}
+
+/* FOOTER INFO */
+.engine-note {
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.18);
+    color: #67e8f9;
+    font-size: 13px;
+}
+
+@media (max-width: 1000px) {
+    .main {
+        margin-left: 0;
+        padding: 22px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/glass_theme.css') }}">
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-    <h4>Authenticity</h4>
+{% include "sidebar.html" %}
 
-    <a href="/dashboard">
-        <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <a href="/documents">
-        <i class="bi bi-file-earmark-text"></i> Documents
-    </a>
-
-    <a href="/similarity-graph" class="active">
-        <i class="bi bi-bar-chart"></i> Analytics
-    </a>
-
-    <a href="/resume/upload">
-        <i class="bi bi-briefcase"></i> Resume Screening
-    </a>
-
-    <a href="/logout">
-        <i class="bi bi-box-arrow-right"></i> Logout
-    </a>
-</div>
-
-<!-- MAIN -->
 <div class="main">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- HEADER -->
+    <div class="page-header">
         <div>
-            <h3 class="fw-bold mb-0">Similarity Analysis</h3>
-            <small class="text-muted">Document similarity matrix</small>
+            <h1>Similarity Analysis</h1>
+            <p class="text-muted mb-0">Document similarity matrix powered by TF-IDF cosine comparison.</p>
         </div>
 
-        <a href="{{ url_for('compare_docs') }}" class="btn btn-compare">
-            <i class="bi bi-intersect me-2"></i> Compare Docs
+        <a href="{{ url_for('compare_docs') }}" class="btn">
+            <i class="bi bi-intersect me-2"></i>
+            Compare Documents
         </a>
     </div>
 
-    <div class="card analytics-card">
+    <!-- MAIN ANALYTICS GRID -->
+    <div class="analytics-grid">
 
-        <div class="card-header bg-white border-bottom p-3">
-            <small class="text-muted">NLP Similarity Engine • TF-IDF Cosine Similarity</small>
+        <!-- HEATMAP PANEL -->
+        <div class="card panel">
+
+            <div class="panel-header">
+                <h3>
+                    <i class="bi bi-grid-3x3-gap me-2"></i>
+                    Similarity Matrix
+                </h3>
+                <small class="text-muted">Document-to-document overlap visualization</small>
+            </div>
+
+            <div class="panel-body">
+                <div class="heatmap-container">
+                    {% if image %}
+                        <img src="data:image/png;base64,{{ image }}" class="heatmap-img">
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-bar-chart d-block"></i>
+                            <h5>No similarity data available</h5>
+                            <p class="mb-0">Upload at least two documents to generate a matrix.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
 
-        <div class="card-body p-4">
+        <!-- INSIGHTS PANEL -->
+        <div class="card panel">
 
-            <!-- HEATMAP -->
-            <div class="heatmap-container mb-4">
-                {% if image %}
-                    <img src="data:image/png;base64,{{ image }}" class="heatmap-img">
-                {% else %}
-                    <div class="text-muted py-5">
-                        <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
-                        No similarity data available
+            <div class="panel-header">
+                <h3>
+                    <i class="bi bi-lightbulb me-2"></i>
+                    Quick Insights
+                </h3>
+                <small class="text-muted">How to interpret this analysis</small>
+            </div>
+
+            <div class="panel-body">
+
+                <div class="insight-list">
+
+                    <div class="insight-item">
+                        <h6>High Similarity</h6>
+                        <p class="mb-0">Darker or stronger cells indicate higher textual overlap between documents.</p>
                     </div>
-                {% endif %}
-            </div>
 
-            <!-- ✅ NEW: DYNAMIC GRAPH -->
-            <div class="mt-4">
-                <h6 class="fw-bold">Upload Activity Trend</h6>
-                <canvas id="uploadChart" height="100"></canvas>
-            </div>
+                    <div class="insight-item">
+                        <h6>Diagonal Values</h6>
+                        <p class="mb-0">Diagonal cells represent self-comparison, usually the highest value.</p>
+                    </div>
 
-            <!-- INSIGHTS -->
-            <div class="row mt-4">
+                    <div class="insight-item">
+                        <h6>Clusters</h6>
+                        <p class="mb-0">Groups of high-similarity documents may indicate reused or duplicate content.</p>
+                    </div>
 
-                <div class="col-md-8">
-                    <h6 class="fw-bold">Interpretation</h6>
-                    <p class="text-muted small">
-                        The matrix represents cosine similarity between documents using TF-IDF vectors.
-                        Higher values indicate stronger textual overlap.
-                    </p>
-                </div>
-
-                <div class="col-md-4">
-                    <h6 class="fw-bold">Quick Insights</h6>
-                    <ul class="small text-muted mb-0">
-                        <li>Diagonal = self similarity</li>
-                        <li>Clusters = similar documents</li>
-                        <li>Outliers = unique content</li>
-                    </ul>
                 </div>
 
             </div>
 
         </div>
+
+    </div>
+
+    <!-- UPLOAD TREND -->
+    <div class="card panel mb-4">
+
+        <div class="panel-header">
+            <h3>
+                <i class="bi bi-activity me-2"></i>
+                Upload Activity Trend
+            </h3>
+            <small class="text-muted">Live upload activity refreshes automatically</small>
+        </div>
+
+        <div class="panel-body">
+            <div class="chart-box">
+                <canvas id="uploadChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="engine-note">
+        <i class="bi bi-cpu me-2"></i>
+        NLP Similarity Engine: TF-IDF vectorization with cosine similarity scoring.
     </div>
 
 </div>
 
-<!-- ✅ CHART LIBRARY -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- ✅ CHART LOGIC -->
 <script>
 const ctx = document.getElementById("uploadChart");
 
@@ -199,18 +274,45 @@ const uploadChart = new Chart(ctx, {
             label: "Uploads",
             data: [],
             borderWidth: 2,
+            tension: 0.35,
             fill: false
         }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: "#e5e7eb"
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: "#94a3b8" },
+                grid: { color: "rgba(255,255,255,0.08)" }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: { color: "#94a3b8" },
+                grid: { color: "rgba(255,255,255,0.08)" }
+            }
+        }
     }
 });
 
 async function loadChart() {
-    const res = await fetch("/api/chart-data");
-    const data = await res.json();
+    try {
+        const res = await fetch("/api/chart-data");
+        const data = await res.json();
 
-    uploadChart.data.labels = data.labels;
-    uploadChart.data.datasets[0].data = data.values;
-    uploadChart.update();
+        uploadChart.data.labels = data.labels;
+        uploadChart.data.datasets[0].data = data.values;
+        uploadChart.update();
+    } catch (err) {
+        console.error("Chart data unavailable", err);
+    }
 }
 
 loadChart();

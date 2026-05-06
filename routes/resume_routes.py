@@ -9,6 +9,9 @@ from utils.skill_extractor import extract_skills
 import os
 import time
 import json
+from utils.file_validator import validate_file
+from utils.ats_engine import generate_ats_explanation
+
 
 resume_bp = Blueprint('resume', __name__)
 
@@ -33,7 +36,11 @@ def upload_resumes():
         group_id = int(time.time())
 
         # ================= JD =================
-        jd_filename = f"{group_id}_{jd_file.filename}"
+        valid, result = validate_file(jd_file)
+        if not valid:
+            return result, 400
+
+        jd_filename = f"{group_id}_{result}"
         jd_path = os.path.join(UPLOAD_FOLDER, jd_filename)
         jd_file.save(jd_path)
 
@@ -52,7 +59,10 @@ def upload_resumes():
         # ================= RESUMES =================
         for file in resume_files:
 
-            filename = f"{group_id}_{file.filename}"
+            valid, result = validate_file(file)
+            if not valid:
+                return result , 400
+            filename = f"{group_id}_{result}"
             path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(path)
 
@@ -107,9 +117,12 @@ def run_pipeline(group_id):
         missing_skills = list(jd_skills - resume_skills)
 
         # STORE JSON
+        explanation = generate_ats_explanation(score, matched_skills, missing_skills)
+
         r.similarity_report = json.dumps({
-            "matched": matched_skills,
-            "missing": missing_skills
+            "matched" : matched_skills,
+            "missing" : missing_skills,
+            "explanation" : explanation
         })
 
     db.session.commit()
@@ -148,4 +161,24 @@ def results(group_id):
         'resume_results.html',
         resumes=resumes,
         similarities=similarities
+    )
+
+@resume_bp.route('/resume/detail/<int:doc_id>')
+def resume_detail(doc_id):
+    doc = Document.query.get_or_404(doc_id)
+
+    data = {}
+    if doc.similarity_report:
+        try:
+            data = json.loads(doc.similarity_report)
+        except:
+            data = {}
+
+    return render_template(
+        'resume_detail.html',
+        resume=doc,
+        matched=data.get("matched", []),
+        missing=data.get("missing", []),
+        explanation=data.get("explanation",""),
+        score=doc.match_score or 0
     )

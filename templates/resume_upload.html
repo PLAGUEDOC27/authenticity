@@ -4,149 +4,235 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Resume Upload - Authenticity</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
-:root {
-    --sidebar-width: 250px;
-    --primary-dark: #0f172a;
-    --bg-light: #f8fafc;
+.main {
+    margin-left: 250px;
+    padding: 34px;
+    min-height: 100vh;
 }
 
-body {
-    margin: 0;
-    font-family: system-ui;
-    background: var(--bg-light);
+/* HEADER */
+.page-header {
+    margin-bottom: 26px;
 }
 
-/* SIDEBAR */
-.sidebar {
-    position: fixed;
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: var(--primary-dark);
-    color: white;
-    padding: 20px;
+.page-header h1 {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 6px;
 }
 
-
-
-.sidebar a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #cbd5e1;
-    text-decoration: none;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-.sidebar a:hover,
-.sidebar a.active {
-    background: #1e293b;
-    color: white;
-}
-
-/* MAIN */
-.upload-wrapper {
-    margin-left: var(--sidebar-width);
-    display: flex;
-    justify-content: center;
-    padding: 40px;
+/* LAYOUT */
+.upload-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    gap: 24px;
 }
 
 /* CARD */
 .upload-card {
-    width: 100%;
-    max-width: 700px;
-    background: white;
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    padding: 26px;
 }
 
 /* DROP ZONE */
 .drop-zone {
-    border: 2px dashed #cbd5e1;
-    border-radius: 12px;
-    padding: 35px;
+    border: 2px dashed rgba(255,255,255,0.2);
+    border-radius: 18px;
+    padding: 40px;
     text-align: center;
     cursor: pointer;
-    transition: 0.2s;
+    transition: 0.25s ease;
+    background: rgba(255,255,255,0.04);
+}
+
+.drop-zone:hover {
+    border-color: #00e5ff;
+    background: rgba(0,229,255,0.08);
 }
 
 .drop-zone.dragover {
-    border-color: #3b82f6;
-    background: #f1f5ff;
+    border-color: #00e5ff;
+    background: rgba(0,229,255,0.12);
 }
 
 /* FILE LIST */
-.file-item {
-    background: #f1f5f9;
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin-top: 8px;
-    display: flex;
-    justify-content: space-between;
+.file-list {
+    margin-top: 16px;
 }
 
-/* BUTTON */
-.btn-upload {
-    width: 100%;
-    margin-top: 20px;
-    background: #0f172a;
-    color: white;
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 10px;
+}
+
+.file-name {
+    font-size: 13px;
+    color: #fff;
     font-weight: 600;
 }
 
-.btn-upload:hover {
-    background: #678dc9;
+.file-size {
+    font-size: 12px;
+    color: #94a3b8;
 }
 
+/* INPUT */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+/* BUTTON */
+.submit-btn {
+    height: 48px;
+    margin-top: 10px;
+}
+
+/* INFO PANEL */
+.info-card {
+    padding: 22px;
+}
+
+.info-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.info-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(116,1,192,0.18);
+    color: #d8b4fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-item strong {
+    color: white;
+}
+
+.info-item small {
+    color: #94a3b8;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1000px) {
+    .main {
+        margin-left: 0;
+        padding: 22px;
+    }
+
+    .upload-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/glass_theme.css') }}">
 </head>
 
 <body>
 
 {% include "sidebar.html" %}
 
-<!-- MAIN -->
-<div class="upload-wrapper">
+<div class="main">
 
-    <div class="upload-card">
+    <!-- HEADER -->
+    <div class="page-header">
+        <h1>Resume Screening</h1>
+        <p class="text-muted mb-0">Upload job description and candidate resumes for AI-based ranking.</p>
+    </div>
 
-        <h4 class="mb-3">
-            <i class="bi bi-cloud-upload"></i> Resume Screening Upload
-        </h4>
+    <div class="upload-grid">
 
-        <form method="POST" enctype="multipart/form-data">
+        <!-- UPLOAD PANEL -->
+        <div class="card upload-card">
 
-            <label class="fw-semibold">Job Description</label>
-            <input type="file" name="jd" class="form-control mb-3" required>
+            <form method="POST" enctype="multipart/form-data">
 
-            <label class="fw-semibold">Upload Resumes</label>
+                <div class="form-group">
+                    <label>Job Description</label>
+                    <input type="file" name="jd" class="form-control" required>
+                </div>
 
-            <!-- DROP ZONE -->
-            <div class="drop-zone" id="dropZone">
-                <i class="bi bi-upload fs-3"></i>
-                <p class="mb-0">Drag & Drop or Click to Upload</p>
-                <small class="text-muted">PDF, DOCX supported</small>
+                <div class="form-group">
+                    <label>Upload Resumes</label>
+
+                    <div class="drop-zone" id="dropZone">
+                        <i class="bi bi-cloud-upload fs-3 d-block mb-2"></i>
+                        <strong>Drag & Drop files</strong>
+                        <div class="text-muted small">or click to browse • PDF / DOCX</div>
+                    </div>
+
+                    <input type="file" id="resumeInput" name="resumes" multiple hidden>
+
+                    <div id="fileList" class="file-list"></div>
+                </div>
+
+                <button class="btn submit-btn w-100">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Analyze Resumes
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- INFO PANEL -->
+        <div class="card info-card">
+
+            <h5 class="mb-3 fw-bold">How it Works</h5>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div>
+                    <strong>Upload JD</strong>
+                    <small>Provide the job description for matching.</small>
+                </div>
             </div>
 
-            <input type="file" id="resumeInput" name="resumes" multiple hidden>
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="bi bi-files"></i>
+                </div>
+                <div>
+                    <strong>Upload Resumes</strong>
+                    <small>Multiple resumes can be analyzed together.</small>
+                </div>
+            </div>
 
-            <!-- FILE LIST -->
-            <div id="fileList"></div>
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <div>
+                    <strong>AI Matching</strong>
+                    <small>System ranks candidates based on relevance.</small>
+                </div>
+            </div>
 
-            <button class="btn btn-upload">
-                Analyze Resumes
-            </button>
-
-        </form>
+        </div>
 
     </div>
 
@@ -157,10 +243,10 @@ const input = document.getElementById("resumeInput");
 const dropZone = document.getElementById("dropZone");
 const fileList = document.getElementById("fileList");
 
-/* CLICK OPEN */
-dropZone.addEventListener("click", () => input.click());
+/* CLICK */
+dropZone.onclick = () => input.click();
 
-/* FILE PREVIEW */
+/* SHOW FILES */
 function showFiles(files) {
     fileList.innerHTML = "";
 
@@ -168,20 +254,18 @@ function showFiles(files) {
         const div = document.createElement("div");
         div.className = "file-item";
         div.innerHTML = `
-            <span>📄 ${file.name}</span>
-            <small>${(file.size/1024).toFixed(1)} KB</small>
+            <span class="file-name">${file.name}</span>
+            <span class="file-size">${(file.size/1024).toFixed(1)} KB</span>
         `;
         fileList.appendChild(div);
     });
 }
 
-/* INPUT CHANGE */
-input.addEventListener("change", () => {
-    showFiles(input.files);
-});
+/* INPUT */
+input.addEventListener("change", () => showFiles(input.files));
 
-/* DRAG EVENTS */
-dropZone.addEventListener("dragover", (e) => {
+/* DRAG */
+dropZone.addEventListener("dragover", e => {
     e.preventDefault();
     dropZone.classList.add("dragover");
 });
@@ -190,10 +274,9 @@ dropZone.addEventListener("dragleave", () => {
     dropZone.classList.remove("dragover");
 });
 
-dropZone.addEventListener("drop", (e) => {
+dropZone.addEventListener("drop", e => {
     e.preventDefault();
     dropZone.classList.remove("dragover");
-
     input.files = e.dataTransfer.files;
     showFiles(input.files);
 });

@@ -28,7 +28,11 @@ def check_plagiarism(new_text, documents):
 
     all_sentences = new_sentences + existing_sentences
 
-    vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+    vectorizer = TfidfVectorizer(
+        ngram_range=(1, 2),
+        stop_words="english"
+    )
+
     tfidf_matrix = vectorizer.fit_transform(all_sentences)
 
     new_vecs = tfidf_matrix[:len(new_sentences)]
@@ -37,35 +41,43 @@ def check_plagiarism(new_text, documents):
     similarity_matrix = cosine_similarity(new_vecs, existing_vecs)
 
     report = []
-    total_score = 0
-    match_count = 0
-    unique_matched_sentences = set()
+    matched_sentence_ids = set()
+    scores = []
+
+    THRESHOLD = 0.35
 
     for i, row in enumerate(similarity_matrix):
-        for j, score in enumerate(row):
 
-            if score > 0.2:
-                percent = score * 100
+        best_match_index = row.argmax()
+        best_score = row[best_match_index]
 
-                report.append({
-                    "sentence_id": i,
-                    "sentence": new_sentences[i],
-                    "source_document": sentence_source_map[j],
-                    "similarity": round(percent, 2)
-                })
+        if best_score >= THRESHOLD:
+            percent = round(best_score * 100, 2)
 
-                total_score += percent
-                match_count += 1
-                unique_matched_sentences.add(i)
+            report.append({
+                "sentence_id": i,
+                "sentence": new_sentences[i],
+                "source_sentence": existing_sentences[best_match_index],
+                "source_document": sentence_source_map[best_match_index],
+                "similarity": percent,
+                "score": percent,
+                "severity": (
+                    "high" if percent >= 80
+                    else "medium" if percent >= 50
+                    else "low"
+                )
+            })
 
-    if match_count == 0:
+            matched_sentence_ids.add(i)
+            scores.append(percent)
+
+    if not report:
         return 0.0, []
 
-    coverage = len(unique_matched_sentences) / len(new_sentences)
-    avg_similarity = total_score / match_count
+    coverage = len(matched_sentence_ids) / len(new_sentences)
+    avg_similarity = sum(scores) / len(scores)
 
     final_score = (coverage * 0.6 + (avg_similarity / 100) * 0.4) * 100
-
     final_score = round(max(0, min(final_score, 100)), 2)
 
     return final_score, report

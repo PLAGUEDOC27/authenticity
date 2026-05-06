@@ -26,6 +26,7 @@ from utils.analytics import generate_plagiarism_chart
 from functools import wraps
 from flask import session, redirect, url_for, abort
 
+from utils.report_engine import generate_plagiarism_report
 
 
 
@@ -46,6 +47,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(INSTANCE_DIR, 'site.db')}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024 
 
     # ---------------- INIT ----------------
     db.init_app(app)
@@ -151,6 +153,22 @@ def create_app():
             avg_ai=avg_ai,
             max_plagiarism=max_plagiarism,
             documents=docs
+        )
+
+    @app.route("/report/<int:doc_id>")
+    def plagiarism_report(doc_id):
+        target_doc = Document.query.get_or_404(doc_id)
+
+        source_docs = Document.query.filter(
+            Document.original_text.isnot(None)
+        ).all()
+
+        report = generate_plagiarism_report(target_doc, source_docs)
+
+        return render_template(
+            "plagiarism_report.html",
+            doc=target_doc,
+            report=report
         )
     
     @app.route("/similarity-graph")

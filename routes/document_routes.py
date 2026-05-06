@@ -12,8 +12,11 @@ from utils.text_extractor import extract_text_from_file
 from utils.text_preprocessing import preprocess_text
 from utils.plagiarism_engine import check_plagiarism
 from utils.ai_detector import ai_probability_score
+from utils.report_engine import generate_plagiarism_report
 from utils.pdf_export import generate_pdf
 from utils.scoring import compute_jd_score
+from utils.file_validator import validate_file
+
 
 document_bp = Blueprint("documents", __name__)
 
@@ -42,15 +45,13 @@ def upload_document():
 
     file = request.files["file"]
 
-    if file.filename == "":
-        flash("No file selected.", "warning")
+    valid, result = validate_file(file)
+
+    if not valid:
+        flash(result, "danger")
         return redirect(url_for("documents.upload_document"))
 
-    if not allowed_file(file.filename):
-        flash("Unsupported file type.", "danger")
-        return redirect(url_for("documents.upload_document"))
-
-    filename = secure_filename(file.filename)
+    filename = result
 
     upload_folder = os.path.join(current_app.root_path, "uploads")
     os.makedirs(upload_folder, exist_ok=True)
@@ -211,17 +212,22 @@ def document_detail(doc_id):
 # =========================
 # 📄 PDF DOWNLOAD
 # =========================
-@document_bp.route("/document/<int:doc_id>/download")
-def download_report(doc_id):
+@document_bp.route("/report/<int:doc_id>/download")
+def download_plagiarism_report(doc_id):
 
     doc = Document.query.get_or_404(doc_id)
 
-    report = []
-    if doc.similarity_report:
-        report = json.loads(doc.similarity_report)
+    source_docs = Document.query.filter(
+        Document.original_text.isnot(None)
+    ).all()
 
-    file_path = f"report_{doc_id}.pdf"
+    report = generate_plagiarism_report(doc, source_docs)
 
-    generate_pdf(doc, report, file_path)
+    pdf_buffer = generate_pdf(doc, report)
 
-    return send_file(file_path, as_attachment=True)
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"plagiarism_report_{doc.id}.pdf",
+        mimetype="application/pdf"
+    )
